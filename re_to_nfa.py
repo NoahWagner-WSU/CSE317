@@ -23,7 +23,8 @@ class NFA:
 
 input_file = open(sys.argv[1], "r")
 
-for regex in input_file:
+for line in input_file:
+	regex = line
 	for char in regex
 		# if alphabet char, make NFA that recognizes that char
 			# add NFA to temp array
@@ -37,3 +38,5 @@ for regex in input_file:
 
 		#NOTE: if we cannot pop 2 or 1 NFA's from array because there is less than that many, return error
 			# 1 if * and 2 for | and & operations
+
+	# print regex, start state, accept states, and NFA in specified format
