@@ -1,66 +1,88 @@
 import sys
 
-#NOTE: I don't need to store alphabet since NFA output doesn't include alphabet
+#NOTE: I don't need to store alphabet or states since NFA output doesn't include them
 class NFA:
-	def __init__(states, transitions, start_state, accept_states):
-		self.states = states
+	def __init__(self, transitions, start_state, accept_state):
 		self.transitions = transitions
 		self.start_state = start_state
-		self.accept_states = accept_states
+		self.accept_state = accept_state
 
 	#outputs NFA to stdout in structured way (like in specification files)
-	def print():
+	# def print():
 
-	def union(NFA2, curr_state_id):
+	def union(self, NFA2, curr_state_id):
 		transition1 = [curr_state_id, "E", self.start_state]
 		transition2 = [curr_state_id, "E", NFA2.start_state]
+		transition3 = [self.accept_state, "E", curr_state_id + 1]
+		transition4 = [NFA2.accept_state, "E", curr_state_id + 1]
 		self.transitions.extend(NFA2.transitions)
 		self.transitions.append(transition1)
 		self.transitions.append(transition2)
-		self.states.extend(NFA2.states)
-		self.states.append(curr_state_id)
-		self.accept_states.extend(NFA2.accept_states)
+		self.transitions.append(transition3)
+		self.transitions.append(transition4)
+		self.accept_state = curr_state_id + 1
 		self.start_state = curr_state_id
 		return self
 
-	def concat(NFA2):
-		transitions = []
-		for accept_state in self.accept_states:
-			transitions.append([accept_state, "E", NFA2.start_state])
-		self.transitions.extend(transitions)
+	def concat(self, NFA2):
+		self.transitions.append([self.accept_state, "E", NFA2.start_state])
 		self.transitions.extend(NFA2.transitions)
-		self.states.extend(NFA2.states)
-		self.accept_states = NFA2.accept_states
+		self.accept_state = NFA2.accept_state
 		return self
 
-	def star(curr_state_id):
-		self.states.append(curr_state_id)
-		transitions = []
-		for accept_state in self.accept_states:
-			transitions.append([accept_state, "E", self.start_state])
-		self.transitions.extend(transitions)
+	def star(self, curr_state_id):
+		self.transitions.append([self.accept_state, "E", curr_state_id])
+		self.transitions.append([curr_state_id, "E", self.start_state])
 		self.start_state = curr_state_id
-		self.accept_states.append(curr_state_id)
+		self.accept_state = curr_state_id
 		return self
 
 input_file = open(sys.argv[1], "r")
+
+letters = ["a", "b", "c", "d", "e"]
 
 for line in input_file:
 	regex = line
 	curr_state_id = 1
 	NFAs = []
 	for char in regex:
-		# if alphabet char, make NFA that recognizes that char
-			# add NFA to temp array
-		# if | operator, pop two NFA's from array and call union(NFA1, NFA2)
-			# add that NFA to temp array
-		# if & operator, pop two NFA's from array and call concat(NFA1, NFA2)
-			# add that NFA to temp array
-		# if * operator, pop NFA from array and call star(NFA1)
-			# add that NFA to temp array
-		# else quit program and return error (if "\n" don't do anything)
-
-		#NOTE: if we cannot pop 2 or 1 NFA's from array because there is less than that many, return error
-			# 1 if * and 2 for | and & operations
-
+		if char in letters:
+			transitions = [[curr_state_id, char, curr_state_id + 1]]
+			NFAs.append(NFA(transitions, curr_state_id, curr_state_id + 1))
+			curr_state_id += 2
+		elif char == "|":
+			if len(NFAs) < 2:
+				print("Error: Malformed Input")
+				exit()
+			NFA1 = NFAs.pop()
+			NFA2 = NFAs.pop()
+			NFA1.union(NFA2, curr_state_id)
+			NFAs.append(NFA1)
+			curr_state_id += 2
+		elif char == "&":
+			if len(NFAs) < 2:
+				print("Error: Malformed Input")
+				exit()
+			NFA1 = NFAs.pop()
+			NFA2 = NFAs.pop()
+			NFA2.concat(NFA1)
+			NFAs.append(NFA2)
+		elif char == "*":
+			if(len(NFAs) < 1):
+				print("Error: Malformed Input")
+				exit()
+			NFA1 = NFAs.pop()
+			NFA1.star(curr_state_id)
+			NFAs.append(NFA1)
+			curr_state_id += 1
+		elif char != "\n":
+			print("Error: unrecognized character: " + char)
+			exit()
 	# print regex, start state, accept states, and NFA in specified format
+	final_NFA = NFAs.pop()
+	print("___TRANSITIONS___")
+	print(final_NFA.transitions)
+	print("___START_STATE___")
+	print(final_NFA.start_state)
+	print("___ACCEPT_STATES___")
+	print(final_NFA.accept_state)
