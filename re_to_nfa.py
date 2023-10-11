@@ -1,13 +1,11 @@
 import sys
 
-#NOTE: I don't need to store alphabet or states since NFA output doesn't include them
 class NFA:
 	def __init__(self, transitions, start_state, accept_state):
 		self.transitions = transitions
 		self.start_state = start_state
 		self.accept_state = accept_state
 
-	#outputs NFA to stdout in structured way (like in specification files)
 	def print(self):
 		print("Start: q" + str(self.start_state))
 		print("Accept: q" + str(self.accept_state))
@@ -52,6 +50,7 @@ for line in input_file:
 	regex = line[:-1]
 	curr_state_id = 1
 	NFAs = []
+	failed = False
 	for char in regex:
 		if char in letters:
 			transitions = [[curr_state_id, char, curr_state_id + 1]]
@@ -59,8 +58,9 @@ for line in input_file:
 			curr_state_id += 2
 		elif char == "|":
 			if len(NFAs) < 2:
-				print("Error: Malformed Input")
-				exit()
+				print("Error: Malformed Regular Expression: " + regex)
+				failed = True
+				break
 			NFA1 = NFAs.pop()
 			NFA2 = NFAs.pop()
 			NFA2.union(NFA1, curr_state_id)
@@ -68,26 +68,33 @@ for line in input_file:
 			curr_state_id += 2
 		elif char == "&":
 			if len(NFAs) < 2:
-				print("Error: Malformed Input")
-				exit()
+				print("Error: Malformed Regular Expression: " + regex)
+				failed = True
+				break
 			NFA1 = NFAs.pop()
 			NFA2 = NFAs.pop()
 			NFA2.concat(NFA1)
 			NFAs.append(NFA2)
 		elif char == "*":
 			if(len(NFAs) < 1):
-				print("Error: Malformed Input")
-				exit()
+				print("Error: Malformed Regular Expression: " + regex)
+				failed = True
+				break
 			NFA1 = NFAs.pop()
 			NFA1.star(curr_state_id)
 			NFAs.append(NFA1)
 			curr_state_id += 1
 		else:
-			print("Error: unrecognized character: " + char)
-			exit()
-	if len(NFAs) != 1:
-		print("Error: Malformed Input")
-		exit()
+			print("Error: unrecognized character: " + char + " in regular expression: " + regex)
+			failed = True
+			break
+	if failed:
+		print("\n", end="")
+		continue
+	elif len(NFAs) != 1:
+		print("Error: Malformed Regular Expression: " + regex)
+		print("\n", end="")
+		continue
 	final_NFA = NFAs.pop()
 	print("RE: " + regex)
 	final_NFA.print()
