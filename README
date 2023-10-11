@@ -1,0 +1,10 @@
+Name: 
+	Noah Wagner
+Email:
+	noah.wagner@wsu.edu
+Files:
+	re_to_nfa.py - the whole assignment is in this one python file, takes input file of regular expressions (posfix, assumes new line character at end of each regex) and converts it to nfa machine which is outputted to stdout
+Interpreter Version: 
+	Python 3.10.12 (which is the wsu computer python version)
+Instructions Build / Run:
+	run the command "python3 re_to_nfa.py <your_input_file.txt>"
